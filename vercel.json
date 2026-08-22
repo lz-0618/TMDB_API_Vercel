@@ -1,22 +1,44 @@
 {
-    "rewrites": [
-        {
-            "source": "/get/(.*)",
-            "destination": "/api/getJson"
-        },
-        {
-            "source": "/img/(.*)",
-            "destination": "/api/getImg"
-        }
-    ],
-    "headers": [
-        {
-            "source": "/(.*)",
-            "headers": [
-                { "key": "Access-Control-Allow-Origin", "value": "*" },
-                { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
-                { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
-            ]
-        }
-    ]    
+  "routes": [
+    {
+      "src": "/get/(.*)",
+      "methods": ["OPTIONS"],
+      "dest": "/api/options-handler"
+    },
+    {
+      "src": "/get/3/(.*)",
+      "methods": ["OPTIONS"],
+      "dest": "/api/options-handler"
+    },
+    {
+      "src": "/img/(.*)",
+      "methods": ["OPTIONS"],
+      "dest": "/api/options-handler"
+    },
+    {
+      "src": "/get/(.*)",
+      "methods": ["GET", "POST"],
+      "dest": "/api/getJson"
+    },
+    {
+      "src": "/get/3/(.*)",
+      "methods": ["GET", "POST"],
+      "dest": "/api/getJson"
+    },
+    {
+      "src": "/img/(.*)",
+      "methods": ["GET", "POST"],
+      "dest": "/api/getImg"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET, POST, OPTIONS" },
+        { "key": "Access-Control-Allow-Headers", "value": "Content-Type, Authorization" }
+      ]
+    }
+  ]
 }
