@@ -1,34 +1,46 @@
-var imgUrl = "https://image.tmdb.org"
-const http = require('http');
+var tmdbUrl = "https://image.tmdb.org"
 const axios = require('axios');
 const url = require('url');
-const common = require('../utility/common.js')
 
 module.exports = async (req, res) => {
+  // ★★★ 处理 CORS 预检请求（OPTIONS）★★★
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+
   var { url: requestUrl} = req;
+  const parsedUrl = url.parse(requestUrl);
   // 重定向的`/img`必须去除
   if (!requestUrl.startsWith("/img")) {
     return;
   }else{
     requestUrl = requestUrl.replace(/^\/img/, '');
   }
-  imgUrl = `https://image.tmdb.org${requestUrl}`;
+  // 如果路径以 /t 开头，保留（图片路径通常以 /t/p/ 开头）
+  // 不需要额外处理，直接拼接
+  tmdbUrl = `https://image.tmdb.org/t/p${requestUrl}`;
 
   try {
-      // 使用axios获取远程图像数据
-      const response = await axios.get(imgUrl, { responseType: 'arraybuffer' });
-
-      // 设置响应头，告诉浏览器返回的是图片数据
-      res.writeHead(200, {
-          'Content-Type': 'image/jpeg',
-          'Content-Length': response.data.length
-      });
-
-      // 将获取到的图像数据直接输出到浏览器
-      res.end(response.data, 'binary');
-    } catch (error) {
-        console.error('Error fetching image:', error);
-        res.writeHead(500, { 'Content-Type': 'text/plain' });
-        res.end(`${error}`);
-    }
+    const response = await axios({
+      method: 'get',
+      url: tmdbUrl,
+      responseType: 'stream'
+    });
+    // 设置 CORS 响应头
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    // 转发图片数据
+    res.statusCode = response.status;
+    response.data.pipe(res);
+  }catch (error) {
+    res.statusCode = 500;
+    res.setHeader('Content-Type', 'text/plain');
+    res.end(`${error}`);
+  }
 };
