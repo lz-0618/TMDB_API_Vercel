@@ -13,6 +13,12 @@ module.exports = async (req, res) => {
   }else{
     requestUrl = requestUrl.replace(/^\/get/, '');
   }
+
+  // ★★★ 新增：如果路径以 /3 开头，去掉它 ★★★
+  if (requestUrl.startsWith('/3')) {
+    requestUrl = requestUrl.slice(2); // 去掉 "/3"
+  }
+    
   // 如果`api_key`前面存在参数，则`api_key`前面是'&'，否则前面就是是'?'
   if(parsedUrl.query===null){
     tmdbUrl = `https://api.themoviedb.org/3${requestUrl}?api_key=${common.apiKey}`;
