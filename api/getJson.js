@@ -7,35 +7,49 @@ const common = require('../utility/common.js')
 module.exports = async (req, res) => {
   var { url: requestUrl} = req;
   const parsedUrl = url.parse(requestUrl);
+  
+  // 处理预检请求（OPTIONS）
+  if (req.method === 'OPTIONS') {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.statusCode = 204;
+    res.end();
+    return;
+  }
+  
   // 重定向的`/get`必须去除
   if (!requestUrl.startsWith("/get")) {
     return;
-  }else{
+  } else {
     requestUrl = requestUrl.replace(/^\/get/, '');
   }
-
-  // ★★★ 新增：如果路径以 /3 开头，去掉它 ★★★
+  
+  // 如果路径以 /3 开头，去掉它
   if (requestUrl.startsWith('/3')) {
-    requestUrl = requestUrl.slice(2); // 去掉 "/3"
+    requestUrl = requestUrl.slice(2);
   }
-    
-  // 如果`api_key`前面存在参数，则`api_key`前面是'&'，否则前面就是是'?'
+  
+  // 构造 TMDB URL
   if(parsedUrl.query===null){
     tmdbUrl = `https://api.themoviedb.org/3${requestUrl}?api_key=${common.apiKey}`;
-  }else {
+  } else {
     tmdbUrl = `https://api.themoviedb.org/3${requestUrl}&api_key=${common.apiKey}`;
   }
 
   try {
-    // 发送 HTTP 请求以获取 TMDb API 的响应
     const response = await axios.get(tmdbUrl);
-    // 将 TMDb API 的响应返回给调用方
+    
+    // 设置 CORS 响应头
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    
     res.statusCode = 200;
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response.data));
     console.log(tmdbUrl)
-  }catch (error) {
-    // 处理错误情况
+  } catch (error) {
     res.statusCode = 500;
     res.setHeader('Content-Type', 'text/plain');
     res.end(`${error}`);
